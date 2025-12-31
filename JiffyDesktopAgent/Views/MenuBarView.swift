@@ -152,22 +152,49 @@ struct MenuBarView: View {
     }
 
     private var unauthenticatedView: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "person.crop.circle.badge.questionmark")
-                .font(.largeTitle)
-                .foregroundColor(.secondary)
+        VStack(alignment: .leading, spacing: 12) {
+            // Show Claude detection status even without auth
+            VStack(alignment: .leading, spacing: 6) {
+                statusRow(
+                    icon: sessionManager.isClaudeRunning ? "checkmark.circle.fill" : "xmark.circle.fill",
+                    color: sessionManager.isClaudeRunning ? .green : .gray,
+                    label: "Claude Desktop",
+                    value: sessionManager.isClaudeRunning ? "Running" : "Not Running"
+                )
 
-            Text("Sign in to start monitoring")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+                statusRow(
+                    icon: accessibilityMonitor.hasAccessibilityPermission ? "checkmark.circle.fill" : "xmark.circle.fill",
+                    color: accessibilityMonitor.hasAccessibilityPermission ? .green : .orange,
+                    label: "Accessibility",
+                    value: accessibilityMonitor.hasAccessibilityPermission ? "Granted" : "Not Granted"
+                )
 
-            Button("Sign In") {
-                showingLogin = true
+                if !accessibilityMonitor.hasAccessibilityPermission {
+                    Button("Grant Accessibility Permission") {
+                        accessibilityMonitor.requestAccessibilityPermission()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    .padding(.top, 4)
+                }
             }
-            .buttonStyle(.borderedProminent)
+
+            Divider()
+
+            // Sign in prompt
+            VStack(spacing: 8) {
+                Text("Sign in to send events to Jiffy Labs")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+
+                Button("Sign In") {
+                    showingLogin = true
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
     }
 
     private func statusRow(icon: String, color: Color, label: String, value: String) -> some View {
